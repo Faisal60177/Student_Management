@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Profile</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-container {
+            background: white;
+            width: 600px;
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            text-align: center;
+            font-weight: normal;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .info {
+            background: #f4f6f8;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .info p {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .back-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-top: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #3498db;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="profile-container">
+    <h1>Student Profile</h1>
+    <h2>Welcome, <span id="studentName">Student</span></h2>
+
+    <div class="info">
+        <p><strong>Student ID:</strong> <span id="studentId">---</span></p>
+        <p><strong>Name:</strong> <span id="name">---</span></p>
+        <p><strong>Email:</strong> <span id="email">---</span></p>
+        <p><strong>Department:</strong> <span id="department">---</span></p>
+        <p><strong>Phone:</strong> <span id="phone">---</span></p>
+    </div>
+
+    <button class="back-btn" onclick="goBack()">Back to Dashboard</button>
+</div>
+
+<script>
+    // Retrieve studentId from localStorage (set during login)
+    const studentId = localStorage.getItem("studentId");
+
+    if (!studentId) {
+        alert("Session expired. Please login again.");
+        window.location.href = "student_login.html";
+    }
+
+    // Fetch student data from backend
+    fetch(`http://localhost:8080/student/profile/${studentId}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Student not found");
+            return response.json();
+        })
+        .then(student => {
+            if (!student) throw new Error("Empty student data");
+
+            document.getElementById("studentName").innerText = student.name || "N/A";
+            document.getElementById("studentId").innerText = student.studentId || "N/A";
+            document.getElementById("name").innerText = student.name || "N/A";
+            document.getElementById("email").innerText = student.email || "N/A";
+            document.getElementById("department").innerText = student.department || "N/A";
+            document.getElementById("phone").innerText = student.phone || "N/A";
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Unable to load profile. Please login again.");
+            localStorage.removeItem("studentId");
+            window.location.href = "student_login.html";
+        });
+
+    function goBack() {
+        window.location.href = "student_dashboard.html";
+    }
+</script>
+
+</body>
+</html>

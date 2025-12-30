@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Semester Update</title>
+    <style>
+        body {
+            margin:0; height:100vh; font-family: Arial,sans-serif;
+            background: linear-gradient(135deg,#dfe9f3,#ffffff);
+            display:flex; justify-content:center; align-items:center;
+        }
+        .panel {
+            background:white; width:400px; padding:30px; border-radius:14px;
+            box-shadow:0 15px 30px rgba(0,0,0,.2); text-align:center;
+        }
+        h2 { margin-bottom:25px; color:#2c3e50; }
+        input, select {
+            width:100%; padding:12px; margin:10px 0; font-size:15px;
+            border:1px solid #ccc; border-radius:10px;
+        }
+        button {
+            width:100%; padding:12px; font-size:16px; font-weight:bold;
+            border:none; border-radius:10px; cursor:pointer;
+            background:#2980b9; color:white;
+        }
+        button:hover {
+            background:#3498db; transform:translateY(-2px);
+        }
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <h2>Semester Update</h2>
+    <form onsubmit="saveSemester(event)">
+        <input type="text" id="studentId" placeholder="Student ID" required/>
+
+        <select id="semesterTerm" required>
+            <option value="">Select Term</option>
+            <option value="SPRING">SPRING</option>
+            <option value="AUTUMN">AUTUMN</option>
+        </select>
+
+        <select id="semesterYear" required>
+            <option value="">Select Year</option>
+        </select>
+
+        <select id="semesterNo" required>
+            <option value="">Semester No</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option>
+        </select>
+
+        <button type="submit">Save Semester</button>
+    </form>
+
+    <!-- Message will appear here -->
+    <div id="statusMessage" class="message"></div>
+</div>
+
+<script>
+    const yearSelect = document.getElementById("semesterYear");
+    const currentYear = new Date().getFullYear();
+    for(let y=currentYear-5; y<=currentYear+10; y++){
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.text = y;
+        yearSelect.appendChild(opt);
+    }
+
+    function saveSemester(event){
+        event.preventDefault();
+
+        const studentId = document.getElementById("studentId").value;
+        const term = document.getElementById("semesterTerm").value;
+        const year = document.getElementById("semesterYear").value;
+        const semesterNo = parseInt(document.getElementById("semesterNo").value);
+        const semesterName = term + " " + year;
+
+        // Show text in HTML instead of alert
+        const statusDiv = document.getElementById("statusMessage");
+        statusDiv.textContent = "Updated semester";
+
+        // Reset form
+        document.querySelector("form").reset();
+
+        // Send data to backend
+        fetch("http://localhost:8080/admin/save-semester", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentId, semesterName, semesterNo })
+        })
+            .then(res => res.text())
+            .then(msg => console.log("Backend response:", msg))
+            .catch(err => console.error("Failed to save:", err));
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result Update</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 50px;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 900px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .info {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .info span {
+            font-weight: bold;
+            margin-right: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #2980b9;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f4f6f8;
+        }
+
+        tbody tr:hover {
+            background-color: #dce6f1;
+        }
+
+        select, input {
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            background-color: #2980b9;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Result Update</h1>
+
+    <div class="info">
+        <span>Student ID: <span id="studentId">---</span></span>
+        <span>Semester Name: <span id="semesterName">---</span></span>
+        <span>Semester Number: <span id="semesterNo">---</span></span>
+    </div>
+
+    <table id="resultTable">
+        <thead>
+        <tr>
+            <th>SL</th>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Credit Hours</th>
+            <th>Grade</th>
+            <th>Point</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button id="saveResultsBtn">Save Results</button>
+</div>
+
+<script>
+    const studentId = localStorage.getItem("updateStudentId");
+    if (!studentId) {
+        alert("No student verified. Redirecting to admin dashboard.");
+        window.location.href = "admin_dashboard.html";
+    }
+    document.getElementById("studentId").innerText = studentId;
+
+    let semesterName = "";
+    let semesterNo = 0;
+
+    // 1️⃣ Fetch semester info
+    fetch(`http://localhost:8080/admin/semester/${encodeURIComponent(studentId)}`)
+        .then(res => res.json())
+        .then(semester => {
+            semesterName = (semester.semesterName || "---").trim();
+            semesterNo = semester.semesterNo || 0;
+
+            document.getElementById("semesterName").innerText = semesterName;
+            document.getElementById("semesterNo").innerText = semesterNo;
+
+            // 2️⃣ Fetch registered courses
+            const coursesUrl = `http://localhost:8080/student/course/student-courses?studentId=${encodeURIComponent(studentId)}&semesterName=${encodeURIComponent(semesterName)}`;
+            return fetch(coursesUrl);
+        })
+        .then(res => res.json())
+        .then(courses => {
+            if (!courses || courses.length === 0) {
+                alert("No registered courses found.");
+                return;
+            }
+
+            // 3️⃣ Fetch existing results
+            return fetch(`http://localhost:8080/admin/student-results?studentId=${encodeURIComponent(studentId)}&semesterName=${encodeURIComponent(semesterName)}`)
+                .then(res => res.json())
+                .then(results => ({courses, results}));
+        })
+        .then(data => {
+            if (!data) return;
+
+            const { courses, results } = data;
+            const tbody = document.querySelector("#resultTable tbody");
+            tbody.innerHTML = "";
+
+            courses.forEach((course, index) => {
+                const existingResult = results.find(r => r.courseCode === course.courseCode);
+                const gradeValue = existingResult ? existingResult.grade : "";
+                const pointValue = existingResult ? existingResult.point : "";
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><input type="text" value="${course.courseCode}" readonly></td>
+                <td><input type="text" value="${course.courseName}" readonly></td>
+                <td><input type="number" value="${course.creditHours}" readonly></td>
+                <td>
+                    <select ${gradeValue ? "disabled" : ""}>
+                        <option value="">--Select--</option>
+                        <option ${gradeValue === "A+" ? "selected" : ""}>A+</option>
+                        <option ${gradeValue === "A" ? "selected" : ""}>A</option>
+                        <option ${gradeValue === "A-" ? "selected" : ""}>A-</option>
+                        <option ${gradeValue === "B+" ? "selected" : ""}>B+</option>
+                        <option ${gradeValue === "B" ? "selected" : ""}>B</option>
+                        <option ${gradeValue === "B-" ? "selected" : ""}>B-</option>
+                        <option ${gradeValue === "C+" ? "selected" : ""}>C+</option>
+                        <option ${gradeValue === "C" ? "selected" : ""}>C</option>
+                        <option ${gradeValue === "D" ? "selected" : ""}>D</option>
+                        <option ${gradeValue === "F" ? "selected" : ""}>F</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" value="${pointValue}" ${pointValue ? "readonly" : ""} placeholder="0.00">
+                </td>
+            `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(err => {
+            console.error("Error fetching data:", err);
+            alert("Failed to fetch semester or course data. Check console.");
+        });
+
+    // 4️⃣ Save results per course
+    document.getElementById("saveResultsBtn").addEventListener("click", () => {
+        const tbody = document.querySelector("#resultTable tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+
+        rows.forEach(row => {
+            const gradeSelect = row.cells[4].querySelector("select");
+            const pointInput = row.cells[5].querySelector("input");
+
+            if (!gradeSelect.disabled && gradeSelect.value && pointInput.value) {
+                const result = {
+                    studentId,
+                    semesterName,
+                    semesterNo,
+                    courseCode: row.cells[1].querySelector("input").value,
+                    courseName: row.cells[2].querySelector("input").value,
+                    creditHours: row.cells[3].querySelector("input").value,
+                    grade: gradeSelect.value,
+                    point: pointInput.value
+                };
+
+                fetch("http://localhost:8080/admin/save-results", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(result)
+                })
+                    .then(res => res.text())
+                    .then(msg => {
+                        alert(`Result saved for course ${result.courseCode}`);
+                        gradeSelect.disabled = true;
+                        pointInput.readOnly = true;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert(`Failed to save result for course ${result.courseCode}`);
+                    });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

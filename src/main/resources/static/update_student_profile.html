@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Student</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #eef2f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .form {
+            background: white;
+            padding: 35px;
+            width: 480px;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0,0,0,.2);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+        }
+        input[readonly] {
+            background: #f0f0f0;
+        }
+        button {
+            margin-top: 18px;
+            background: #2980b9;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .msg {
+            margin-top: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="form">
+    <h2>Update Student</h2>
+
+    <!-- SERIAL FORM -->
+
+    <label>Student ID</label>
+    <input type="text" id="studentId" readonly>
+
+    <label>Name</label>
+    <input type="text" id="name">
+
+    <label>Email</label>
+    <input type="email" id="email">
+
+    <label>Department</label>
+    <input type="text" id="department" readonly>
+
+    <label>Phone</label>
+    <input type="text" id="phone">
+
+    <label>Password</label>
+    <input type="password" id="password" readonly>
+
+    <button onclick="updateStudent()">Update</button>
+
+    <div id="msg" class="msg"></div>
+</div>
+
+<script>
+    const studentId = localStorage.getItem("updateStudentId");
+
+    if (!studentId) {
+        alert("Session expired. Verify student again.");
+        window.location.href = "verify_student.html";
+    }
+
+    const idInput = document.getElementById("studentId");
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const deptInput = document.getElementById("department");
+    const phoneInput = document.getElementById("phone");
+    const passInput = document.getElementById("password");
+    const msgDiv = document.getElementById("msg");
+
+    // ===== LOAD DATA =====
+    fetch(`http://localhost:8080/admin/student/${studentId}`)
+        .then(res => res.json())
+        .then(s => {
+            if (!s) {
+                alert("Student not found");
+                window.location.href = "admin_dashboard.html";
+                return;
+            }
+
+            idInput.value = s.studentId;
+            nameInput.value = s.name || "";
+            emailInput.value = s.email || "";
+            deptInput.value = s.department || "";
+            phoneInput.value = s.phone || "";
+            passInput.value = s.password || "";
+        });
+
+    // ===== UPDATE =====
+    function updateStudent() {
+        const data = {
+            studentId: idInput.value,
+            name: nameInput.value.trim(),
+            email: emailInput.value.trim(),
+            phone: phoneInput.value.trim()
+        };
+
+        fetch("http://localhost:8080/admin/student/update-basic", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+            .then(res => res.text())
+            .then(msg => {
+                if (msg === "UPDATED") {
+                    msgDiv.innerHTML =
+                        "<span class='success'>UPDATED</span>";
+                    setTimeout(() => {
+                        window.location.href = "admin_update_student.html";
+                    }, 1200);
+                } else {
+                    msgDiv.innerHTML =
+                        "<span class='error'>Update Failed</span>";
+                }
+            })
+            .catch(() => {
+                msgDiv.innerHTML =
+                    "<span class='error'>Server Error</span>";
+            });
+    }
+</script>
+
+</body>
+</html>

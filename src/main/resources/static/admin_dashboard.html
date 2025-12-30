@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .dashboard-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 400px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 30px;
+            font-weight: normal;
+        }
+
+        button {
+            width: 80%;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #2980b9;
+            color: white;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #3498db;
+        }
+
+        .logout-btn {
+            background-color: #c0392b;
+        }
+
+        .logout-btn:hover {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h1>Admin Dashboard</h1>
+    <h2>Welcome Admin</h2>
+
+    <button onclick="goTo('admin_verify_student.html')">1. Update Student</button>
+    <button onclick="goTo('admin_search_student.html')">2. Search Student</button>
+    <button onclick="goTo('admin_delete_student.html')">3. Delete Student</button>
+    <button onclick="goTo('admin_add_student.html')">4. Add Student</button>
+    <button onclick="goTo('admin_view_all_students.html')">5. View All Students</button>
+    <button onclick="goTo('admin_course_update.html')">6. Course Update</button>
+    <button class="logout-btn" onclick="logout()">7. Logout</button>
+</div>
+
+<script>
+    function goTo(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        window.location.href = 'admin_login.html';
+    }
+</script>
+
+</body>
+</html>

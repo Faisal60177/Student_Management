@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View All Students</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            margin: 0;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 900px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #2980b9;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #c0392b;
+            color: white;
+            cursor: pointer;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .back-btn:hover {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>All Students</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Email</th>
+        </tr>
+        </thead>
+        <tbody id="studentTableBody">
+        </tbody>
+    </table>
+
+    <button class="back-btn" onclick="goBack()">Back to Dashboard</button>
+</div>
+
+<script>
+    function loadStudents() {
+        fetch("http://localhost:8080/admin/students")
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("studentTableBody");
+                tbody.innerHTML = "";
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5">No students found</td>
+                        </tr>`;
+                    return;
+                }
+
+                data.forEach((s, index) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${s.studentId}</td>
+                        <td>${s.name}</td>
+                        <td>${s.department}</td>
+                        <td>${s.email}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Failed to load students");
+            });
+    }
+
+    function goBack() {
+        window.location.href = "admin_dashboard.html";
+    }
+
+    // Auto load students on page load
+    loadStudents();
+</script>
+
+</body>
+</html>

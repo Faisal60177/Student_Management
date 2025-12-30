@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result View</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 50px;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            text-align: left;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .info div {
+            line-height: 1.6;
+        }
+
+        .info span {
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #2980b9;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f4f6f8;
+        }
+
+        tbody tr:hover {
+            background-color: #dce6f1;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            background-color: #2980b9;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Result View</h1>
+
+    <div class="info">
+        <div class="left-info">
+            <p>Matric ID: <span id="studentId">---</span></p>
+            <p>Name: <span id="studentName">---</span></p>
+            <p>Semester: <span id="semesterName">---</span></p>
+        </div>
+        <div class="right-info">
+            <p>Department: <span id="department">---</span></p>
+            <p>Semester Enrolled: <span id="semesterNo">---</span></p>
+        </div>
+    </div>
+
+    <table id="resultTable">
+        <thead>
+        <tr>
+            <th>SL</th>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Credit Hours</th>
+            <th>Grade</th>
+            <th>Point</th>
+            <th>Grade Point</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button class="back-btn" onclick="goBack()">Back</button>
+</div>
+
+
+<script>
+    // ✅ Use the same key as previous page
+    const studentId = localStorage.getItem("updateStudentId");
+
+    if (!studentId) {
+        alert("No student selected. Redirecting to dashboard.");
+        window.location.href = "admin_dashboard.html";
+    }
+
+    // Show student ID immediately
+    document.getElementById("studentId").innerText = studentId;
+
+    let semesterName = "";
+    let semesterNo = 0;
+
+    /* ===============================
+       FETCH STUDENT PROFILE (ADMIN OK)
+       Source: STUDENT BACKEND
+    ================================ */
+    fetch(`/student/profile/${encodeURIComponent(studentId)}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Profile fetch failed");
+            return res.json();
+        })
+        .then(student => {
+            document.getElementById("studentName").innerText = student.name || "N/A";
+            document.getElementById("department").innerText = student.department || "N/A";
+        })
+        .catch(() => {
+            document.getElementById("studentName").innerText = "Name not found";
+            document.getElementById("department").innerText = "N/A";
+        });
+
+    /* ===============================
+       FETCH SEMESTER INFO (ADMIN)
+    ================================ */
+    fetch(`http://localhost:8080/admin/semester/${encodeURIComponent(studentId)}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Semester fetch failed");
+            return res.json();
+        })
+        .then(semester => {
+            semesterName = semester.semesterName || "---";
+            semesterNo = semester.semesterNo || "---";
+
+            document.getElementById("semesterName").innerText = semesterName;
+            document.getElementById("semesterNo").innerText = semesterNo;
+
+            // Fetch student courses
+            return fetch(
+                `http://localhost:8080/student/course/student-courses` +
+                `?studentId=${encodeURIComponent(studentId)}` +
+                `&semesterName=${encodeURIComponent(semesterName)}`
+            );
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Course fetch failed");
+            return res.json();
+        })
+        .then(courses => {
+            if (!courses || courses.length === 0) return;
+
+            // Fetch existing results
+            return fetch(
+                `http://localhost:8080/admin/student-results` +
+                `?studentId=${encodeURIComponent(studentId)}` +
+                `&semesterName=${encodeURIComponent(semesterName)}`
+            )
+                .then(res => res.json())
+                .then(results => ({ courses, results }));
+        })
+        .then(data => {
+            if (!data) return;
+
+            const { courses, results } = data;
+            const tbody = document.querySelector("#resultTable tbody");
+            tbody.innerHTML = "";
+
+            courses.forEach((course, index) => {
+                const existingResult = results.find(
+                    r => r.courseCode === course.courseCode
+                );
+
+                const grade = existingResult ? existingResult.grade : "---";
+                const point = existingResult ? existingResult.point.toFixed(2) : "---";
+                const gradePoint = existingResult ? existingResult.gradePoint.toFixed(2) : "---";
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${course.courseCode}</td>
+                    <td>${course.courseName}</td>
+                    <td>${course.creditHours.toFixed(2)}</td>
+                    <td>${grade}</td>
+                    <td>${point}</td>
+                    <td>${gradePoint}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(err => {
+            console.error("Error fetching result data:", err);
+            alert("Failed to fetch student data.");
+        });
+
+    function goBack() {
+        window.location.href = "admin_dashboard.html";
+    }
+</script>

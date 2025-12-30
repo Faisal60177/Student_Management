@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Course Registration</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: Arial;
+            background: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            margin-top:50px;
+            padding: 0 10px;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 30px;
+        }
+        input, select, button {
+            padding:8px; margin:5px 0;
+            border-radius:5px; border:1px solid #ccc;
+            width: 100%; max-width: 200px;
+        }
+        input[readonly] {
+            background-color: #eee;
+            cursor: not-allowed;
+        }
+        button { background: #007bff; color:white; border:none; cursor:pointer; }
+        button:hover { background:#0056b3; }
+        .back-btn { background:#6c757d; margin-bottom:10px; }
+        .back-btn:hover { background:#5a6268; }
+        .table-container { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            min-width: 700px;
+        }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f7c873; }
+        tr:nth-child(even) { background: #fff9e6; }
+        tr:nth-child(odd) { background: #fffde6; }
+        .student-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        .center-button { display: flex; justify-content: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="searchContainer">
+    <h2>Student Course Registration</h2>
+
+    <input type="text" id="studentId" placeholder="Student ID" readonly>
+    <input type="text" id="department" placeholder="Department">
+    <input type="number" id="semesterNo" placeholder="Semester No">
+    <button onclick="searchCourses()">Search Courses</button>
+    <div id="message" style="margin-top:15px;font-weight:bold;"></div>
+</div>
+
+<div class="container course-list" id="courseContainer" style="display:none;">
+    <button class="back-btn" onclick="backToSearch()">← Back</button>
+
+    <div id="studentInfoDisplay" class="student-info">
+        <div id="leftInfo"></div>
+        <div id="rightInfo"></div>
+    </div>
+
+    <h2>Select Courses</h2>
+
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Select</th>
+                <th>Course Code</th>
+                <th>Course Name</th>
+                <th>Credit Hours</th>
+                <th>Section</th>
+                <th>Sub Section</th>
+            </tr>
+            </thead>
+            <tbody id="courseList"></tbody>
+        </table>
+    </div>
+
+    <div class="center-button">
+        <button onclick="submitCourses()">Submit</button>
+    </div>
+
+    <div id="message2" style="margin-top:15px;font-weight:bold;"></div>
+</div>
+
+<script>
+    let availableCourses = [];
+    let studentInfo = {};
+    let loggedInStudentId = null;
+
+    window.onload = function () {
+        loggedInStudentId = localStorage.getItem("studentId");
+        if (!loggedInStudentId) {
+            alert("Session expired. Please login again.");
+            window.location.href = "student_login.html";
+            return;
+        }
+        document.getElementById("studentId").value = loggedInStudentId;
+    };
+
+    async function searchCourses(){
+        const studentId = loggedInStudentId;
+        const department = document.getElementById('department').value.trim();
+        const semesterNoInput = document.getElementById('semesterNo').value.trim();
+        const msg = document.getElementById('message');
+        msg.textContent = '';
+
+        if(!department || !semesterNoInput){
+            msg.style.color = 'red';
+            msg.textContent = 'Fill all fields.';
+            return;
+        }
+
+        const semesterNo = Number(semesterNoInput);
+
+        fetch(`http://localhost:8080/student/course/available?studentId=${studentId}&department=${department}&semesterNo=${semesterNo}`)
+            .then(res => res.json())
+            .then(data => {
+                availableCourses = data;
+                if(data.length === 0){
+                    msg.style.color = 'orange';
+                    msg.textContent = 'No courses available for this semester.';
+                    return;
+                }
+
+                studentInfo = {
+                    studentId,
+                    department,
+                    semesterNo: semesterNo
+                };
+
+                document.getElementById('searchContainer').style.display = 'none';
+                document.getElementById('courseContainer').style.display = 'block';
+
+                document.getElementById('leftInfo').innerHTML =
+                    `ID: ${studentId}<br>Department: ${department}`;
+
+                // 🔹 Semester number display REMOVED here
+                document.getElementById('rightInfo').innerHTML = ``;
+
+                const tbody = document.getElementById('courseList');
+                tbody.innerHTML = '';
+                data.forEach((c,i)=>{
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                    <td>${i+1}</td>
+                    <td><input type="checkbox"></td>
+                    <td>${c.courseCode}</td>
+                    <td>${c.courseName}</td>
+                    <td>${c.creditHours}</td>
+                    <td>
+                        <select class="sectionSelect">
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="subSectionSelect">
+                            <option>A</option><option>B</option><option>C</option>
+                            <option>D</option><option>E</option>
+                        </select>
+                    </td>`;
+                    tbody.appendChild(tr);
+                });
+            });
+    }
+
+    function backToSearch(){
+        document.getElementById('searchContainer').style.display = 'block';
+        document.getElementById('courseContainer').style.display = 'none';
+    }
+
+    function submitCourses(){
+        const selected = [];
+        const rows = document.querySelectorAll('#courseList tr');
+
+        rows.forEach((row, i) => {
+            if(row.querySelector('input[type=checkbox]').checked){
+                selected.push({
+                    courseName: availableCourses[i].courseName,
+                    courseCode: availableCourses[i].courseCode,
+                    creditHours: availableCourses[i].creditHours,
+                    section: row.querySelector('.sectionSelect').value,
+                    subSection: row.querySelector('.subSectionSelect').value
+                });
+            }
+        });
+
+        if(selected.length === 0){
+            document.getElementById('message2').textContent = 'Select at least one course.';
+            return;
+        }
+
+        fetch('http://localhost:8080/student/course/register',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ ...studentInfo, courses: selected })
+        })
+            .then(res=>res.text())
+            .then(()=>{
+                document.getElementById('message2').style.color='green';
+                document.getElementById('message2').textContent='Courses registered successfully!';
+            });
+    }
+</script>
+
+</body>
+</html>

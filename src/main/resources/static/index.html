@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        /* Header */
+        h1 {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 28px;
+            color: #34495e;
+            margin-bottom: 50px;
+        }
+
+        /* Buttons */
+        .panel-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            margin: 20px;
+            font-size: 22px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .panel-btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<h1>Student Management System</h1>
+<h2>Welcome to SMS</h2>
+
+<!-- Panel Buttons -->
+<div>
+    <button class="panel-btn" onclick="goToPage('admin.html')">Admin Panel</button>
+    <button class="panel-btn" onclick="goToPage('student.html')">Student Panel</button>
+</div>
+
+<script>
+    // Navigate to another page when button is clicked
+    function goToPage(page) {
+        window.location.href = page; // change to actual HTML page
+    }
+</script>
+
+</body>
+</html>

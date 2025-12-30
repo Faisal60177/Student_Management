@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Course</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #007bff;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Add Course</h2>
+
+    <label for="department">Department</label>
+    <input type="text" id="department" placeholder="Enter Department">
+
+    <label for="semesterName">Semester Name</label>
+    <input type="text" id="semesterName" placeholder="Enter Semester Name">
+
+    <label for="semesterNo">Semester No</label>
+    <input type="number" id="semesterNo" placeholder="Enter Semester Number" min="1">
+
+    <label for="courseName">Course Name</label>
+    <input type="text" id="courseName" placeholder="Enter Course Name">
+
+    <label for="courseCode">Course Code</label>
+    <input type="text" id="courseCode" placeholder="Enter Course Code">
+
+    <label for="creditHours">Credit Hours</label>
+    <select id="creditHours">
+        <option value="1.00">1.00</option>
+        <option value="1.50">1.50</option>
+        <option value="2.00">2.00</option>
+        <option value="3.00">3.00</option>
+    </select>
+
+    <button onclick="addCourse()">Add Course</button>
+
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+    function addCourse() {
+        const department = document.getElementById("department").value.trim();
+        const semesterName = document.getElementById("semesterName").value.trim();
+        const semesterNo = document.getElementById("semesterNo").value.trim();
+        const courseName = document.getElementById("courseName").value.trim();
+        const courseCode = document.getElementById("courseCode").value.trim();
+        const creditHours = document.getElementById("creditHours").value;
+        const messageDiv = document.getElementById("message");
+
+        // Simple validation
+        if (!department || !semesterName || !semesterNo || !courseName || !courseCode || !creditHours) {
+            messageDiv.style.color = "red";
+            messageDiv.textContent = "Please fill in all fields.";
+            return;
+        }
+
+        fetch("http://localhost:8080/admin/course/add", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                department,
+                semesterName,
+                semesterNo: Number(semesterNo),
+                courseName,
+                courseCode,
+                creditHours: parseFloat(creditHours)
+            })
+        })
+            .then(res => res.text())
+            .then(msg => {
+                if (msg === "COURSE_ALREADY_ADDED") {
+                    messageDiv.style.color = "orange";
+                    messageDiv.textContent = "Course already added.";
+                } else if (msg === "COURSE_ADDED") {
+                    messageDiv.style.color = "green";
+                    messageDiv.textContent = "Course added successfully!";
+                    // Clear form
+                    document.getElementById("department").value = '';
+                    document.getElementById("semesterName").value = '';
+                    document.getElementById("semesterNo").value = '';
+                    document.getElementById("courseName").value = '';
+                    document.getElementById("courseCode").value = '';
+                    document.getElementById("creditHours").value = '1.00';
+                } else {
+                    messageDiv.style.color = "red";
+                    messageDiv.textContent = "Failed: " + msg;
+                }
+            })
+            .catch(err => {
+                messageDiv.style.color = "red";
+                messageDiv.textContent = "Error: " + err;
+            });
+    }
+</script>
+</body>
+</html>

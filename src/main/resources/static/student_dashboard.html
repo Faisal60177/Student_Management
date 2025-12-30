@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dashboard {
+            background: white;
+            width: 700px;
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        h2 {
+            text-align: center;
+            font-weight: normal;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .student-info {
+            background: #f4f6f8;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .student-info p {
+            margin: 8px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Row 2 with 3 columns */
+        .buttons-row2 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #2980b9;
+            color: white;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #c0392b;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <h1>Student Dashboard</h1>
+    <h2>Welcome, <span id="studentName">Student</span></h2>
+
+    <!-- Student Information -->
+    <div class="student-info">
+        <p><strong>Student ID:</strong> <span id="studentId">---</span></p>
+        <p><strong>Department:</strong> <span id="department">---</span></p>
+        <p><strong>Email:</strong> <span id="email">---</span></p>
+        <p><strong>Phone:</strong> <span id="phone">---</span></p>
+    </div>
+
+    <!-- Dashboard Buttons -->
+    <div class="buttons">
+        <button onclick="goTo('student_profile.html')">Profile</button>
+        <button onclick="goTo('student_course_registration.html')">Course Registration</button>
+    </div>
+
+    <div class="buttons-row2">
+        <button onclick="goTo('student_results_view.html')">Result View</button>
+        <button onclick="goTo('student_attendance.html')">Attendance</button>
+        <button onclick="goTo('student_view_registered_course.html')">View Registered Courses</button>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">Logout</button>
+
+</div>
+
+<script>
+    /*
+        studentId is stored during login:
+        localStorage.setItem("studentId", studentId);
+    */
+
+    const studentId = localStorage.getItem("studentId");
+
+    if (!studentId) {
+        alert("Session expired. Please login again.");
+        window.location.href = "student_login.html";
+    }
+
+    fetch(`http://localhost:8080/student/profile/${studentId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Student not found");
+            }
+            return response.json();
+        })
+        .then(student => {
+            if (!student) {
+                throw new Error("Empty student data");
+            }
+
+            document.getElementById("studentName").innerText = student.name || "N/A";
+            document.getElementById("studentId").innerText = student.studentId || "N/A";
+            document.getElementById("department").innerText = student.department || "N/A";
+            document.getElementById("email").innerText = student.email || "N/A";
+            document.getElementById("phone").innerText = student.phone || "N/A";
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Unable to load student profile. Please login again.");
+            logout();
+        });
+
+    function goTo(page) {
+        window.location.href = page;
+    }
+
+    function logout() {
+        localStorage.removeItem("studentId");
+        window.location.href = "student_login.html";
+    }
+</script>
+
+</body>
+</html>

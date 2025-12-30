@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Registration</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .form-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #27ae60;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #2ecc71;
+            transform: translateY(-2px);
+        }
+        .back-btn {
+            background-color: #c0392b;
+        }
+        .back-btn:hover {
+            background-color: #e74c3c;
+        }
+        .message {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h1>Admin Registration</h1>
+    <form id="adminForm">
+        <input type="text" id="name" placeholder="Full Name" required>
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="email" id="email" placeholder="Email" required>
+
+        <!-- Updated Title Field -->
+        <select id="title" required>
+            <option value="">Select Title</option>
+            <option value="Lecturer">Lecturer</option>
+            <option value="Professor">Professor</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <input type="text" id="phone" placeholder="Phone Number" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Register</button>
+        <button type="button" class="back-btn" onclick="goBack()">Back</button>
+        <div id="message" class="message"></div>
+    </form>
+</div>
+
+<script>
+    document.getElementById("adminForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const adminData = {
+            name: document.getElementById("name").value,
+            username: document.getElementById("username").value,
+            email: document.getElementById("email").value,
+            title: document.getElementById("title").value,
+            phone: document.getElementById("phone").value,
+            password: document.getElementById("password").value
+        };
+
+        const messageDiv = document.getElementById("message");
+
+        fetch("/admin/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(adminData)
+        })
+            .then(res => res.text())
+            .then(msg => {
+                if(msg === "SUCCESS") {
+                    messageDiv.textContent = "Registration Successful!";
+                    messageDiv.className = "message success";
+                    setTimeout(() => { window.location.href = "/admin.html"; }, 1000);
+                } else if(msg === "EXIST") {
+                    messageDiv.textContent = "Username Already Exist";
+                    messageDiv.className = "message error";
+                } else {
+                    messageDiv.textContent = "Error occurred!";
+                    messageDiv.className = "message error";
+                }
+            });
+    });
+
+    function goBack() { window.location.href = "/admin.html"; }
+</script>
+
+</body>
+</html>

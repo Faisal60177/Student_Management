@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Panel</title>
+    <style>
+        /* General body styling */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* Header styling */
+        h1 {
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 50px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Button container */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 250px;
+        }
+
+        /* Buttons styling */
+        button {
+            padding: 15px 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button.register {
+            background-color: #27ae60;
+            color: white;
+        }
+        button.register:hover {
+            background-color: #2ecc71;
+            transform: translateY(-3px);
+        }
+
+        button.login {
+            background-color: #2980b9;
+            color: white;
+        }
+        button.login:hover {
+            background-color: #3498db;
+            transform: translateY(-3px);
+        }
+
+        button.exit {
+            background-color: #c0392b;
+            color: white;
+        }
+        button.exit:hover {
+            background-color: #e74c3c;
+            transform: translateY(-3px);
+        }
+
+        /* Footer small text */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 14px;
+            color: #2c3e50;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Student Panel</h1>
+
+<div class="button-container">
+    <button class="register" onclick="window.location.href='student_register.html'">Register</button>
+    <button class="login" onclick="window.location.href='student_login.html'">Login</button>
+    <button class="exit" onclick="exitPanel()">Exit</button>
+</div>
+
+<div class="footer">Student Management System v1.0</div>
+
+
+<script>
+    function exitPanel() {
+        window.location.href = "index.html"; // Change to your home page path
+    }
+</script>
+

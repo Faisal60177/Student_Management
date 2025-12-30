@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | Student Attendance</title>
+    <style>
+        body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 0; padding: 40px; }
+        .container { max-width: 1000px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+        h2 { margin-bottom: 20px; color: #2c3e50; }
+        .info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; font-size: 15px; }
+        .info span { font-weight: 600; }
+        .date-box { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        thead { background: #34495e; color: #fff; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        tbody tr:nth-child(even) { background: #f2f4f7; }
+        select { padding: 5px; }
+        .actions { margin-top: 20px; display: flex; gap: 10px; }
+        button { padding: 8px 14px; font-size: 13px; border: none; border-radius: 6px; cursor: pointer; }
+        .back-btn { background: #7f8c8d; color: #fff; }
+        .save-btn-row { background: #27ae60; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Student Attendance (Admin)</h2>
+
+    <div class="info">
+        <div>Student ID: <span id="studentId">---</span></div>
+        <div>Student Name: <span id="studentName">---</span></div>
+        <div>Department: <span id="department">---</span></div>
+        <div>Semester: <span id="semesterName">---</span> (<span id="semesterNo">---</span>)</div>
+    </div>
+
+    <div class="date-box">
+        <label>Date:</label>
+        <input type="date" id="attendanceDate">
+    </div>
+
+    <table id="attendanceTable">
+        <thead>
+        <tr>
+            <th>SL</th>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="actions">
+        <button class="back-btn" onclick="goBack()">Back</button>
+    </div>
+</div>
+
+<script>
+    const studentId = localStorage.getItem("updateStudentId");
+    if(!studentId){ alert("No student selected."); window.location.href="admin_dashboard.html"; }
+    document.getElementById("studentId").innerText = studentId;
+
+    let semesterName = "";
+    let semesterNo = "";
+
+    // Fetch student profile
+    fetch(`/student/profile/${encodeURIComponent(studentId)}`)
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(student => {
+            document.getElementById("studentName").innerText = student.name || "N/A";
+            document.getElementById("department").innerText = student.department || "N/A";
+        })
+        .catch(()=>{document.getElementById("studentName").innerText="N/A"; document.getElementById("department").innerText="N/A";});
+
+    // Fetch semester and courses
+    fetch(`http://localhost:8080/admin/semester/${encodeURIComponent(studentId)}`)
+        .then(res => res.json())
+        .then(sem => {
+            semesterName = sem.semesterName;
+            semesterNo = sem.semesterNo;
+            document.getElementById("semesterName").innerText = semesterName;
+            document.getElementById("semesterNo").innerText = semesterNo;
+
+            return fetch(`http://localhost:8080/student/course/student-courses?studentId=${encodeURIComponent(studentId)}&semesterName=${encodeURIComponent(semesterName)}`);
+        })
+        .then(res => res.json())
+        .then(courses => {
+            const tbody = document.querySelector("#attendanceTable tbody");
+            tbody.innerHTML = "";
+            courses.forEach((course, i) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${i+1}</td>
+                <td>${course.courseCode}</td>
+                <td>${course.courseName}</td>
+                <td>
+                    <select data-code="${course.courseCode}" data-name="${course.courseName}">
+                        <option value="PRESENT">Present</option>
+                        <option value="ABSENT">Absent</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="save-btn-row" onclick="saveSingleAttendance(this)">Save</button>
+                </td>
+            `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(err => { console.error(err); alert("Failed to load courses."); });
+
+    function saveSingleAttendance(btn){
+        const date = document.getElementById("attendanceDate").value;
+        if(!date){ alert("Please select a date."); return; }
+
+        const row = btn.closest("tr");
+        const select = row.querySelector("select[data-code]");
+
+        const attendance = {
+            studentId,
+            semesterName,
+            semesterNo: parseInt(semesterNo),
+            courseCode: select.dataset.code,
+            courseName: select.dataset.name,
+            attendanceDate: date,
+            status: select.value
+        };
+
+        fetch("http://localhost:8080/admin/attendance/save", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify([attendance])
+        })
+            .then(res => {
+                if(!res.ok) throw new Error();
+                alert(`Attendance for ${attendance.courseCode} on ${attendance.attendanceDate} saved.`);
+            })
+            .catch(err => {
+                console.error(err);
+                alert(`Failed to save attendance for ${attendance.courseCode} on ${attendance.attendanceDate}.`);
+            });
+    }
+
+    function goBack(){ window.location.href="admin_dashboard.html"; }
+</script>
+
+</body>
+</html>

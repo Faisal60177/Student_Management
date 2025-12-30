@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | View Attendance</title>
+    <style>
+        body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 0; padding: 40px; }
+        .container { max-width: 1200px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+        h2 { margin-bottom: 20px; color: #2c3e50; }
+        .info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 10px; font-size: 15px; }
+        .info span { font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 30px; }
+        thead { background: #34495e; color: #fff; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        tbody tr:nth-child(even) { background: #f2f4f7; }
+        .back-btn { padding: 8px 14px; font-size: 13px; border: none; border-radius: 6px; background: #7f8c8d; color: #fff; cursor: pointer; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>View Attendance</h2>
+    <div class="info">
+        <div>Student ID: <span id="studentId">---</span></div>
+        <div>Student Name: <span id="studentName">---</span></div>
+        <div>Department: <span id="department">---</span></div>
+        <div>Semester: <span id="semesterName">---</span> (<span id="semesterNo">---</span>)</div>
+    </div>
+
+    <div id="courseTablesContainer"></div>
+
+    <button class="back-btn" onclick="goBack()">Back</button>
+</div>
+
+<script>
+    const studentId = localStorage.getItem("updateStudentId");
+    if(!studentId){ alert("No student selected."); window.location.href="admin_dashboard.html"; }
+    document.getElementById("studentId").innerText = studentId;
+
+    let semesterName = "", semesterNo = "";
+
+    // Fetch student profile
+    fetch(`/student/profile/${encodeURIComponent(studentId)}`)
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(student => {
+            document.getElementById("studentName").innerText = student.name || "N/A";
+            document.getElementById("department").innerText = student.department || "N/A";
+        })
+        .catch(()=>{document.getElementById("studentName").innerText="N/A"; document.getElementById("department").innerText="N/A";});
+
+    // Fetch semester and courses
+    fetch(`http://localhost:8080/admin/semester/${encodeURIComponent(studentId)}`)
+        .then(res => res.json())
+        .then(sem => {
+            semesterName = sem.semesterName;
+            semesterNo = sem.semesterNo;
+            document.getElementById("semesterName").innerText = semesterName;
+            document.getElementById("semesterNo").innerText = semesterNo;
+
+            return fetch(`http://localhost:8080/student/course/student-courses?studentId=${encodeURIComponent(studentId)}&semesterName=${encodeURIComponent(semesterName)}`);
+        })
+        .then(res => res.json())
+        .then(courses => {
+            if(!courses || courses.length === 0) return;
+
+            const container = document.getElementById("courseTablesContainer");
+            container.innerHTML = "";
+
+            // Loop through all courses
+            courses.forEach(course => {
+                const courseDiv = document.createElement("div");
+
+                // Add course info
+                courseDiv.innerHTML = `
+                <div class="info" style="margin-bottom:10px;">
+                    <div>Course Code: <span>${course.courseCode}</span></div>
+                    <div>Course Name: <span>${course.courseName}</span></div>
+                </div>
+            `;
+
+                // Create table
+                const table = document.createElement("table");
+                table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>SL</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+                courseDiv.appendChild(table);
+                container.appendChild(courseDiv);
+
+                // Fetch attendance for this course
+                fetch(`http://localhost:8080/admin/attendance/view?studentId=${encodeURIComponent(studentId)}&courseCode=${encodeURIComponent(course.courseCode)}&semesterName=${encodeURIComponent(semesterName)}`)
+                    .then(res => res.json())
+                    .then(attendances => {
+                        const tbody = table.querySelector("tbody");
+                        tbody.innerHTML = "";
+                        attendances.forEach((att, i) => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                            <td>${i+1}</td>
+                            <td>${att.attendanceDate}</td>
+                            <td>${att.status}</td>
+                        `;
+                            tbody.appendChild(row);
+                        });
+                    })
+                    .catch(err => console.error("Error loading attendance:", err));
+            });
+        })
+        .catch(err => { console.error(err); alert("Failed to load courses."); });
+
+    function goBack(){ window.location.href="admin_dashboard.html"; }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile (Admin)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f0f0, #d9e7ff);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .profile-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 500px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .info {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .info strong {
+            width: 150px;
+            display: inline-block;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2980b9;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+
+<div class="profile-container">
+    <h2>Student Profile</h2>
+
+    <div class="info"><strong>ID:</strong> <span id="studentId"></span></div>
+    <div class="info"><strong>Name:</strong> <span id="studentName"></span></div>
+    <div class="info"><strong>Email:</strong> <span id="studentEmail"></span></div>
+    <div class="info"><strong>Phone:</strong> <span id="studentPhone"></span></div>
+    <div class="info"><strong>Department:</strong> <span id="studentDept"></span></div>
+    <div class="info"><strong>Semester:</strong> <span id="studentSemester"></span></div>
+
+    <button onclick="goBack()">Back to Dashboard</button>
+</div>
+
+<script>
+    // Load student data from localStorage
+    const student = JSON.parse(localStorage.getItem('studentProfile'));
+    if (!student) {
+        alert("Student data not found.");
+        window.location.href = 'search_student.html';
+    } else {
+        document.getElementById('studentId').innerText = student.studentId || '';
+        document.getElementById('studentName').innerText = student.name || '';
+        document.getElementById('studentEmail').innerText = student.email || '';
+        document.getElementById('studentPhone').innerText = student.phone || '';
+        document.getElementById('studentDept').innerText = student.department || '';
+        document.getElementById('studentSemester').innerText = student.semesterName || '';
+    }
+
+    function goBack() {
+        window.location.href = 'admin_dashboard.html';
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Student</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .delete-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 80%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background-color: #e74c3c;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="delete-container">
+    <h2>Delete Student</h2>
+    <input type="text" id="studentId" placeholder="Enter Student ID"><br>
+    <input type="text" id="studentName" placeholder="Enter Student Name"><br>
+    <button onclick="deleteStudent()">Delete</button>
+    <div id="message"></div>
+</div>
+
+<script>
+    function deleteStudent() {
+        const studentId = document.getElementById('studentId').value.trim();
+        const studentName = document.getElementById('studentName').value.trim();
+        const msg = document.getElementById('message');
+        msg.textContent = '';
+        msg.style.color = 'red';
+
+        if (!studentId || !studentName) {
+            msg.textContent = 'Please fill both fields.';
+            return;
+        }
+
+        // Call backend delete endpoint
+        fetch(`http://localhost:8080/admin/student/delete?studentId=${encodeURIComponent(studentId)}&name=${encodeURIComponent(studentName)}`, {
+            method: 'DELETE'
+        })
+            .then(res => res.text())
+            .then(result => {
+                if (result === "DELETED") {
+                    msg.style.color = 'green';
+                    msg.textContent = 'Student deleted successfully!';
+                    document.getElementById('studentId').value = '';
+                    document.getElementById('studentName').value = '';
+                } else {
+                    msg.style.color = 'red';
+                    msg.textContent = 'Student not found';
+                }
+            })
+            .catch(err => {
+                msg.textContent = 'Error deleting student';
+                console.error(err);
+            });
+    }
+</script>
+
+</body>
+</html>

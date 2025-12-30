@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Student</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .search-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 80%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2980b9;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #3498db;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="search-container">
+    <h2>Search Student</h2>
+    <input type="text" id="studentId" placeholder="Enter Student ID">
+    <br>
+    <button onclick="searchStudent()">Search</button>
+    <div id="message"></div>
+</div>
+
+<script>
+    function searchStudent() {
+        const studentId = document.getElementById('studentId').value.trim();
+        const msg = document.getElementById('message');
+        msg.textContent = '';
+
+        if (!studentId) {
+            msg.textContent = "Please enter a Student ID";
+            return;
+        }
+
+        // Fetch student data from backend
+        fetch(`http://localhost:8080/admin/student/${studentId}`)
+            .then(res => {
+                if (res.status === 404) {
+                    throw new Error("Student not exist");
+                }
+                return res.json();
+            })
+            .then(student => {
+                // Save student data in localStorage for profile page
+                localStorage.setItem('studentProfile', JSON.stringify(student));
+                window.location.href = 'student_profile_for_admin.html';
+            })
+            .catch(err => {
+                msg.textContent = err.message;
+            });
+    }
+</script>
+
+</body>
+</html>

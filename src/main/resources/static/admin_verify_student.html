@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Student</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f0f2f5;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+        .box {
+            background:white;
+            padding:30px;
+            width:400px;
+            border-radius:10px;
+            box-shadow:0 10px 25px rgba(0,0,0,.2);
+        }
+        input, button {
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+        }
+        button {
+            background:#27ae60;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+        .msg {
+            margin-top:15px;
+            font-weight:bold;
+            text-align:center;
+        }
+        .success { color:green; }
+        .error { color:red; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Verify Student ID</h2>
+
+    <input type="text" id="studentId" placeholder="Enter Student ID">
+    <button onclick="verify()">Verify</button>
+
+    <div id="msg" class="msg"></div>
+</div>
+
+<script>
+    function verify() {
+
+        const studentId = document.getElementById("studentId").value.trim();
+        const msg = document.getElementById("msg");
+
+        // -------- EMPTY VALIDATION --------
+        if (studentId === "") {
+            msg.innerHTML = "<span class='error'>Student ID is required</span>";
+            return;
+        }
+
+        fetch(`http://localhost:8080/admin/verify-student/${studentId}`)
+            .then(res => res.json())
+            .then(found => {
+
+                if (found === true) {
+
+                    msg.innerHTML =
+                        "<span class='success'>Authentication Successful</span>";
+
+                    // Existing functionality (UNCHANGED)
+                    localStorage.setItem("updateStudentId", studentId);
+
+                    // ✅ ONLY ADDITION (for admin_view_registered_course.html)
+                    localStorage.setItem("viewCourseStudentId", studentId);
+
+                    // Existing redirect (UNCHANGED)
+                    setTimeout(() => {
+                        window.location.href = "admin_update_student.html";
+                    }, 1200);
+
+                } else {
+
+                    msg.innerHTML =
+                        "<span class='error'>Authentication Failed</span>";
+
+                    setTimeout(() => {
+                        window.location.href = "admin_dashboard.html";
+                    }, 1500);
+                }
+            })
+            .catch(() => {
+                msg.innerHTML =
+                    "<span class='error'>Server Error</span>";
+
+                setTimeout(() => {
+                    window.location.href = "admin_dashboard.html";
+                }, 1500);
+            });
+    }
+</script>
+
+</body>
+</html>

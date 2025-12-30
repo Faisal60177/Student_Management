@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Update Panel</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #dfe9f3, #ffffff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .panel {
+            background: white;
+            width: 520px;
+            padding: 35px;
+            border-radius: 14px;
+            box-shadow: 0 15px 30px rgba(0,0,0,.2);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+
+        .info {
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #2980b9;
+            color: white;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .back {
+            background: #c0392b;
+        }
+
+        .back:hover {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <h2>Update Student Panel</h2>
+
+    <div class="info">
+        Student ID: <span id="studentId"></span>
+    </div>
+
+    <button onclick="goProfile()">Profile Update</button>
+    <button onclick="goResult()">Result Update</button>
+    <button onclick="goAttendance()">Attendance Update</button>
+    <button onclick="goSemester()">Semester Update</button>
+    <button onclick="goCourse()">View Course</button>
+
+    <!-- NEW BUTTONS -->
+    <button onclick="viewResult()">View Result</button>
+    <button onclick="viewAttendance()">View Attendance</button>
+
+    <button class="back" onclick="goBack()">Back to Admin Dashboard</button>
+</div>
+
+<script>
+    const studentId = localStorage.getItem("updateStudentId");
+
+    if (!studentId) {
+        alert("Session expired. Please verify student again.");
+        window.location.href = "verify_student.html";
+    }
+
+    document.getElementById("studentId").innerText = studentId;
+
+    function goProfile() {
+        window.location.href = "update_student_profile.html";
+    }
+
+    function goResult() {
+        window.location.href = "admin_result_update.html";
+    }
+
+    function goAttendance() {
+        window.location.href = "admin_attendance_update.html";
+    }
+
+    function goSemester() {
+        window.location.href = "update_student_semester.html";
+    }
+
+    function goCourse() {
+        window.location.href = "admin_view_registered_course.html";
+    }
+
+    function goBack() {
+        window.location.href = "admin_dashboard.html";
+    }
+
+    /* NEW FUNCTIONS */
+    function viewResult() {
+        window.location.href = "admin_view_result.html";
+    }
+
+    function viewAttendance() {
+        window.location.href = "admin_view_attendance.html";
+    }
+</script>
+
+</body>
+</html>
